@@ -1,13 +1,12 @@
+import time
 from io import BytesIO
 import numpy as np
-import soundfile as sf
-import speech_recognition as sr
-from googletrans import Translator
-import whisper
-from gtts import gTTS
-import pygame
-import time
-    
+import soundfile as sf # 音声データのフォーマット変換
+import pygame # 喋らせる
+import speech_recognition as sr # speech認識
+from googletrans import Translator # 翻訳
+import whisper # 文字起こし
+from gtts import gTTS # text to speech
 
 # Whisperモデルのロード
 model = whisper.load_model("medium")
@@ -24,9 +23,8 @@ with sr.Microphone(sample_rate=16_000) as source:
     audio_array, sampling_rate = sf.read(wav_stream)
     audio_fp32 = audio_array.astype(np.float32)
     
-# 音声ファイルから文字起こしする
+# 音声から文字起こしする
 result = model.transcribe(
-    # "./001-sibutomo.mp3",
     audio_fp32,
     verbose=True,
     language='japanese',
@@ -38,18 +36,20 @@ result = model.transcribe(
 # 文字起こし結果を表示する
 # print(result["text"])
 
-# googletransで英語に翻訳する
+# 英語に翻訳する
 translator = Translator()
 translated = translator.translate(result["text"], dest="en")
 print(translated.text)
 
-# 喋らせる.VALL-Eに置き換えたい.
-pygame.init()
-pygame.mixer.init()
+# テキストを音声に変換
 mp3_fp = BytesIO()
 tts = gTTS(translated.text, lang='en')
 tts.write_to_fp(mp3_fp)
 mp3_fp.seek(0)
+
+# 喋らせる
+pygame.init()
+pygame.mixer.init()
 pygame.mixer.music.load(mp3_fp, 'mp3')
 pygame.mixer.music.play()
 time.sleep(5)
